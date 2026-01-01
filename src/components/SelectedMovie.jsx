@@ -3,37 +3,41 @@ import "./SelectedMovie.css";
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-function SelectedMovie({selected = 66}) { // default: Batman (1989)
+function SelectedMovie({ selected }) {
   const [movie, setMovie] = useState(null);
-  const [error, setError] = useState(null);
-  const movieId = selected;
+  const [trailerKey, setTrailerKey] = useState(null);
+  const [showTrailer, setShowTrailer] = useState(false);
 
   useEffect(() => {
-    if (!movieId) return;
+    if (!selected) return;
 
-    async function fetchMovie() {
-      try {
-        const response = await fetch(
-          `https://api.themoviedb.org/3/movie/${movieId}?api_key=${API_KEY}`
-        );
+    async function fetchData() {
+      // Movie details
+      const movieRes = await fetch(
+        `https://api.themoviedb.org/3/movie/${selected}?api_key=${API_KEY}`
+      );
+      const movieData = await movieRes.json();
+      setMovie(movieData);
 
-        if (!response.ok) throw new Error("Failed to fetch movie");
+      // Trailer
+      const videoRes = await fetch(
+        `https://api.themoviedb.org/3/movie/${selected}/videos?api_key=${API_KEY}`
+      );
+      const videoData = await videoRes.json();
 
-        const data = await response.json();
-        setMovie(data);
-      } catch (err) {
-        console.error(err);
-        setError(err.message);
-      }
+      const trailer = videoData.results?.find(
+        v => v.site === "YouTube" && v.type === "Trailer"
+      );
+
+      setTrailerKey(trailer?.key || null);
+      setShowTrailer(false);
     }
 
-    fetchMovie();
+    fetchData();
   }, [selected]);
 
-  if (error) return <p className="error-message">{error}</p>;
-  if (!movie) return <p className="loading-message">Loading...</p>;
+  if (!movie) return <p>Loading...</p>;
 
-  // Use backdrop first, fallback to poster
   const imageUrl = movie.backdrop_path
     ? `https://image.tmdb.org/t/p/w780${movie.backdrop_path}`
     : movie.poster_path
@@ -42,17 +46,33 @@ function SelectedMovie({selected = 66}) { // default: Batman (1989)
 
   return (
     <div className="selected-movie">
-      <h3 className="movie-title">
+      <h3>
         {movie.title} ({movie.release_date?.slice(0, 4)})
       </h3>
 
-      {imageUrl ? (
+      {imageUrl && (
         <img src={imageUrl} alt={movie.title} className="movie-image" />
-      ) : (
-        <div className="image-placeholder">No image available</div>
       )}
 
-      {movie.overview && <p className="movie-overview">{movie.overview}</p>}
+      <br/>
+      {trailerKey && (
+        
+        <button
+          className="trailer-btn"
+          onClick={() => setShowTrailer(!showTrailer)}
+        >
+          {showTrailer ? "Hide Trailer" : "Play Trailer"}
+        </button>
+      )}
+
+      {showTrailer && trailerKey && (
+        <iframe
+          className="trailer-frame"
+          src={`https://www.youtube.com/embed/${trailerKey}`}
+          title="Trailer"
+          allowFullScreen
+        />
+      )}
     </div>
   );
 }

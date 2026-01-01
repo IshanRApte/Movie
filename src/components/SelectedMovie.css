@@ -50,3 +50,13 @@
   color: #6b7280;
   font-weight: 500;
 }
+
+
+.trailer-frame {
+  margin-top: 16px;
+  width: 100%;
+  height: 450px;   /* ⬅ bigger landscape */
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
