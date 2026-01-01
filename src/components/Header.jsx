@@ -1,7 +1,7 @@
 import "./Header.css";
 import logo from "../assets/react.svg"; // ✅ import the SVG
 
-export default function Header() {
+export default function Header({setString}) {
   return (
     <header className="header">
       {/* Left: Logo + App Name */}
@@ -20,6 +20,7 @@ export default function Header() {
           type="text"
           placeholder="Search movies..."
           className="search-input"
+          onChange={(e)=>{setString(e.target.value)}}
         />
       </div>
     </header>
